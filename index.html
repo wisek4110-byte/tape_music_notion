@@ -243,50 +243,7 @@
             <stop id="wgB" offset="0" stop-color="#A8A49F"/>
           </linearGradient>
         </defs>
-        <g fill="url(#wg)">
-          <rect x="470" y="519.61" width="5" height="46.06" rx="2.5"/>
-          <rect x="479" y="513.515" width="4" height="58.25" rx="2"/>
-          <rect x="487" y="490.11" width="5" height="105.06" rx="2.5"/>
-          <rect x="496" y="513.62" width="5" height="58.04" rx="2.5"/>
-          <rect x="505" y="481.975" width="4" height="121.33" rx="2"/>
-          <rect x="513" y="513.62" width="5" height="58.04" rx="2.5"/>
-          <rect x="522" y="498.61" width="5" height="88.06" rx="2.5"/>
-          <rect x="530" y="513.62" width="5" height="58.04" rx="2.5"/>
-          <rect x="539" y="482.62" width="5" height="120.04" rx="2.5"/>
-          <rect x="548" y="497.01" width="4" height="91.26" rx="2"/>
-          <rect x="556" y="482.62" width="5" height="120.04" rx="2.5"/>
-          <rect x="565" y="490.11" width="5" height="105.06" rx="2.5"/>
-          <rect x="574" y="482.51" width="4" height="120.26" rx="2"/>
-          <rect x="582" y="516.61" width="5" height="52.06" rx="2.5"/>
-          <rect x="591" y="515.11" width="5" height="55.06" rx="2.5"/>
-          <rect x="600" y="482.505" width="4" height="120.27" rx="2"/>
-          <rect x="608" y="482.62" width="5" height="120.04" rx="2.5"/>
-          <rect x="617" y="482.62" width="5" height="120.04" rx="2.5"/>
-          <rect x="625" y="513.62" width="5" height="58.04" rx="2.5"/>
-          <rect x="634" y="513.6" width="5" height="58.08" rx="2.5"/>
-          <rect x="643" y="482.6" width="5" height="120.08" rx="2.5"/>
-          <rect x="651" y="512.1" width="5" height="61.08" rx="2.5"/>
-          <rect x="660" y="482.6" width="5" height="120.08" rx="2.5"/>
-          <rect x="669" y="515.005" width="4" height="55.27" rx="2"/>
-          <rect x="677" y="516.61" width="5" height="52.06" rx="2.5"/>
-          <rect x="686" y="482.6" width="5" height="120.08" rx="2.5"/>
-          <rect x="695" y="490.005" width="4" height="105.27" rx="2"/>
-          <rect x="703" y="482.6" width="5" height="120.08" rx="2.5"/>
-          <rect x="712" y="497.1" width="5" height="91.08" rx="2.5"/>
-          <rect x="721" y="482.505" width="4" height="120.27" rx="2"/>
-          <rect x="729" y="513.6" width="5" height="58.08" rx="2.5"/>
-          <rect x="738" y="498.61" width="5" height="88.06" rx="2.5"/>
-          <rect x="746" y="513.6" width="5" height="58.08" rx="2.5"/>
-          <rect x="755" y="482.6" width="5" height="120.08" rx="2.5"/>
-          <rect x="764" y="513.505" width="4" height="58.27" rx="2"/>
-          <rect x="772" y="490.11" width="5" height="105.06" rx="2.5"/>
-          <rect x="781" y="513.6" width="5" height="58.08" rx="2.5"/>
-          <rect x="790" y="495.505" width="4" height="94.27" rx="2"/>
-          <rect x="798" y="499.6" width="5" height="86.08" rx="2.5"/>
-          <rect x="807" y="510.61" width="5" height="64.06" rx="2.5"/>
-          <rect x="816" y="513.505" width="4" height="58.27" rx="2"/>
-          <rect x="824" y="521.11" width="5" height="43.06" rx="2.5"/>
-        </g>
+        <g id="waveBars" fill="url(#wg)"></g>
       </svg>
     </div>
 
@@ -365,6 +322,25 @@
     tracks:[]
   };
   var S=Object.assign({},DEFAULTS);
+
+  /* ---------------- waveform ---------------- */
+  /* Bar heights as a percent of the full height (113px of the 975x627 sheet, the same as the round
+     buttons). Edit this list to reshape the waveform: any length works, bars are spread evenly. */
+  var WAVE=[76,42,66,73,87,63,40,33,49,80,77,38,60,38,92,65,87,99,89,83,65,53,81,59,34,99,100,75,44,54];
+  (function drawWave(){
+    var X0=470, X1=829, BW=4.2, H=113, CY=542.5, NS='http://www.w3.org/2000/svg',
+        g=$('waveBars'), pitch=(X1-X0-BW)/(WAVE.length-1);
+    WAVE.forEach(function(v,i){
+      var h=H*v/100, r=document.createElementNS(NS,'rect');
+      r.setAttribute('x',(X0+i*pitch).toFixed(2));
+      r.setAttribute('y',(CY-h/2).toFixed(2));
+      r.setAttribute('width',BW);
+      r.setAttribute('height',h.toFixed(2));
+      r.setAttribute('rx',BW/2);
+      g.appendChild(r);
+    });
+  })();
+
 
   /* ---------------- youtube url parsing ---------------- */
   var VID=/^[A-Za-z0-9_-]{11}$/;
