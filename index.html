@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Cassette Tape Player</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +42,19 @@
   .tape img{display:block;-webkit-user-drag:none}
   .bg{position:absolute;left:0;top:0;width:100%;height:100%}
   .yt-host{position:absolute;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1}
+  .yt-note,.yt-close{display:none}
+  /* shown only when playback cannot start by itself (e.g. an embed that blocks autoplay) */
+  .yt-host.show{
+    left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);
+    width:min(88%,420px);height:auto;overflow:visible;opacity:1;pointer-events:auto;z-index:9;
+    background:#242222;color:#fff;border-radius:14px;padding:12px;
+    box-shadow:0 10px 36px rgba(0,0,0,.45);
+  }
+  .yt-host.show iframe{display:block;width:100%;height:auto;aspect-ratio:16/9;border:0;border-radius:8px;background:#000}
+  .yt-host.show .yt-note{display:block;font-size:12px;line-height:1.55;margin:0 22px 8px 2px}
+  .yt-note a{color:#f0b7c6}
+  .yt-note small{display:block;opacity:.55;font-size:10px;margin-top:4px;word-break:break-all}
+  .yt-host.show .yt-close{display:block;position:absolute;top:6px;right:8px;border:0;background:transparent;color:#fff;font-size:15px;line-height:1;cursor:pointer;padding:4px}
 
   /* ---------- title: sits on the first ruled line (y=121), like handwriting on a J-card ---------- */
   .title-svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
@@ -258,7 +272,7 @@
 
     <div class="toast" id="toast"></div>
   </div>
-  <div class="yt-host"><div id="yt"></div></div>
+  <div class="yt-host" id="ytHost"><div class="yt-note" id="ytNote"></div><div id="yt"></div><button class="yt-close" id="ytClose" type="button" aria-label="닫기">✕</button></div>
 </div>
 
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="위젯 설정">
@@ -487,9 +501,15 @@
 
   /* ---------------- player ---------------- */
   var player=null, ready=false, cur=0, playing=false, wantPlay=false, scrubbing=false;
+  var YT_HOSTS=['https://www.youtube.com','https://www.youtube-nocookie.com'], hostIdx=0;
+  var lastErr=0, errStreak=0, tryingPlay=false, stuckTimer=null, bufWaits=0;
 
-  window.onYouTubeIframeAPIReady=function(){
+  function buildPlayer(){
+    if(player&&player.destroy){ try{ player.destroy(); }catch(e){} }
+    player=null; ready=false;
+    if(!$('yt')){ var d=document.createElement('div'); d.id='yt'; $('ytHost').insertBefore(d,$('ytClose')); }
     player=new YT.Player('yt',{
+      host:YT_HOSTS[hostIdx],
       height:'2', width:'2',
       playerVars:{playsinline:1,controls:0,rel:0,modestbranding:1,iv_load_policy:3,disablekb:1},
       events:{
@@ -498,15 +518,53 @@
         onError:onError
       }
     });
-  };
+  }
+  window.onYouTubeIframeAPIReady=buildPlayer;
   function loadAPI(){
-    if(window.YT&&window.YT.Player){ window.onYouTubeIframeAPIReady(); return; }
+    if(window.YT&&window.YT.Player){ buildPlayer(); return; }
     var s=document.createElement('script');
     s.src='https://www.youtube.com/iframe_api';
     s.async=true;
     s.onerror=function(){ toast('유튜브를 불러오지 못했습니다'); };
     document.head.appendChild(s);
   }
+
+  /* ---- when playback does not start, say why and let the user start it inside the real player ---- */
+  function envLine(){
+    var anc='', ls='ok';
+    try{ anc=(location.ancestorOrigins&&location.ancestorOrigins[0])||''; }catch(e){}
+    try{ localStorage.getItem('cassette.cfg'); }catch(e){ ls='막힘'; }
+    return (window.top!==window?'임베드됨':'단독 페이지')+(anc?' · '+anc:'')+' · origin '+location.origin+
+           ' · 저장소 '+ls+' · 플레이어 '+(ready?'준비됨':'응답 없음')+(lastErr?' · 오류 '+lastErr:'');
+  }
+  function diagnose(){
+    if(lastErr===153) return '유튜브가 \u201c재생기 설정 오류(153)\u201d를 냈어요. 임베드한 쪽이 출처(Referer) 정보를 막을 때 생기는 오류예요.';
+    if(lastErr) return (ERR_TEXT[lastErr]||'재생 오류가 났어요')+' (오류 '+lastErr+').';
+    if(!ready) return '유튜브 플레이어가 응답하지 않아요.';
+    return '이 환경에서는 자동 재생이 막힌 것 같아요. 아래 플레이어의 \u25b6 를 한 번만 눌러 주세요. 그 뒤로는 평소처럼 동작해요.';
+  }
+  function showPlayer(msg){
+    var n=$('ytNote'); n.textContent=msg+' ';
+    var a=document.createElement('a'); a.href=location.href; a.target='_blank'; a.rel='noopener'; a.textContent='새 창에서 열기 \u2197';
+    n.appendChild(a);
+    var sm=document.createElement('small'); sm.textContent=envLine(); n.appendChild(sm);
+    $('ytHost').classList.add('show');
+  }
+  function hidePlayer(){ $('ytHost').classList.remove('show'); }
+  function armWatch(){
+    clearTimeout(stuckTimer); tryingPlay=true;
+    stuckTimer=setTimeout(onStuck, ready?4000:8000);
+  }
+  function disarmWatch(){ clearTimeout(stuckTimer); stuckTimer=null; tryingPlay=false; bufWaits=0; }
+  function onStuck(){
+    stuckTimer=null;
+    if(playing) return;
+    var st=(ready&&player&&player.getPlayerState)?player.getPlayerState():-9;
+    if(st===3&&bufWaits++<3){ armWatch(); return; }          /* still buffering: give it more time */
+    tryingPlay=false; bufWaits=0;
+    showPlayer(diagnose());
+  }
+  $('ytClose').addEventListener('click',hidePlayer);
 
   function curTrack(){ return S.tracks[cur]||null; }
 
@@ -542,14 +600,16 @@
 
   function toggle(){
     if(!S.tracks.length){ openSheet(); return; }
-    if(!ready){ wantPlay=!wantPlay; toast('불러오는 중…'); return; }
-    if(playing){ player.pauseVideo(); return; }
+    if(!ready){ wantPlay=!wantPlay; if(wantPlay){ toast('불러오는 중…'); armWatch(); } else disarmWatch(); return; }
+    if(playing){ disarmWatch(); player.pauseVideo(); return; }
+    armWatch();
     var data=player.getVideoData?player.getVideoData():null;
     if(!data||!data.video_id) cueTrack(cur,true);
     else player.playVideo();
   }
   function next(){
     if(!S.tracks.length||!ready) return;
+    armWatch();
     if(inPlaylist()){
       var idx=player.getPlaylistIndex(), len=player.getPlaylist().length;
       if(idx<len-1){ player.nextVideo(); return; }
@@ -559,6 +619,7 @@
   function prev(){
     if(!S.tracks.length||!ready) return;
     if(player.getCurrentTime&&player.getCurrentTime()>3){ player.seekTo(0,true); return; }
+    armWatch();
     if(inPlaylist()&&player.getPlaylistIndex()>0){ player.previousVideo(); return; }
     cueTrack(cur-1,true);
   }
@@ -568,6 +629,7 @@
     playing=(st===YT.PlayerState.PLAYING);
     tape.classList.toggle('playing',playing);
     setPlayIcon(playing);
+    if(playing){ disarmWatch(); lastErr=0; errStreak=0; hidePlayer(); }
     if(st===YT.PlayerState.PLAYING||st===YT.PlayerState.PAUSED){
       var d=player.getVideoData?player.getVideoData():null;
       if(d&&d.title) setTicker(d.title);
@@ -578,9 +640,24 @@
     }
     if(st===YT.PlayerState.CUED||st===YT.PlayerState.UNSTARTED) renderIdle();
   }
-  function onError(){
-    toast('이 영상은 재생할 수 없어요');
-    if(S.tracks.length>1) setTimeout(function(){ cueTrack(cur+1,true); },900);
+  var ERR_TEXT={2:'영상 주소가 올바르지 않아요',5:'이 영상은 재생기에서 열 수 없어요',100:'영상을 찾을 수 없거나 비공개예요',101:'영상 소유자가 외부 재생을 막아 두었어요',150:'영상 소유자가 외부 재생을 막아 두었어요'};
+  function onError(e){
+    var code=(e&&e.data)||0;
+    lastErr=code;
+    if(code===153){
+      /* YouTube got no usable Referer. Retry once through the privacy-enhanced host, then explain. */
+      if(hostIdx<YT_HOSTS.length-1){
+        hostIdx++; wantPlay=tryingPlay||wantPlay; lastErr=0;
+        toast('다른 재생 주소로 다시 시도해요');
+        buildPlayer(); if(wantPlay) armWatch();
+        return;
+      }
+      disarmWatch(); showPlayer(diagnose()); return;
+    }
+    disarmWatch();
+    toast((ERR_TEXT[code]||'이 영상은 재생할 수 없어요')+' ('+code+')');
+    if(++errStreak>=S.tracks.length){ showPlayer(diagnose()); return; }   /* every track failed: stop skipping */
+    if(S.tracks.length>1) setTimeout(function(){ cueTrack(cur+1,true); armWatch(); },900);
   }
 
   function setPlayIcon(p){
