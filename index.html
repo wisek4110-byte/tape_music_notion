@@ -9,127 +9,69 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nanum+Pen+Script&family=Special+Elite&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --body:#241d21;
-    --cream:#efe7d9;
-    --cream-hi:#fbf7ee;
-    --gray:#AAAAA0;
-    --gray-2:#9a9a90;
-    --line:#d6cbb8;
-    --wine:#7b2239;
+    --ink:#242222;
+    --cream:#FBF7EE;
+    --wine:#7B2239;
     --wine-2:#95304b;
-    --ink:#1a1419;
-    --tape:#3b261a;
-    --page:#e9eaec;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    background:var(--page);
-    font-family:"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:transparent;
+    font-family:"Noto Sans KR","Malgun Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
     display:flex;align-items:center;justify-content:center;
-    padding:12px;color:var(--ink);
+    padding:6px;
     -webkit-font-smoothing:antialiased;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]) body{background:#17181a}
-  }
-  :root[data-theme="dark"] body{background:#17181a}
 
-  .stage{position:relative;container-type:inline-size;width:100%;max-width:560px}
+  /* The whole cassette is drawn on a 975 x 627 sheet (assets/cassette.png).
+     --u is one pixel of that sheet, so every number below is a sample pixel. */
+  .stage{
+    position:relative;
+    width:min(100%, 900px, calc((100vh - 12px) * 975 / 627));
+  }
+  .tape{
+    position:relative;
+    aspect-ratio:975 / 627;
+    container-type:inline-size;
+    --u:calc(100cqw / 975);
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tape img{display:block;-webkit-user-drag:none}
+  .bg{position:absolute;left:0;top:0;width:100%;height:100%}
   .yt-host{position:absolute;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1}
 
-  /* ---------- cassette ---------- */
-  .cassette{
-    position:relative;
-    aspect-ratio:1.72 / 1;
-    background:var(--body);
-    border-radius:4cqw;
-    padding:2.6cqw;
-    display:flex;flex-direction:column;
-    box-shadow:0 1.2cqw 3cqw rgba(0,0,0,.22);
-  }
-  .panel{
-    flex:1;min-height:0;
-    background:var(--cream);
-    border-radius:1.6cqw;
-    display:flex;flex-direction:column;overflow:hidden;
-  }
-  .title-strip{
-    flex:0 0 33%;
-    background:var(--cream-hi);
-    border-bottom:.45cqw solid var(--line);
-    box-shadow:inset 0 -1.1cqw 0 0 var(--cream-hi), inset 0 -1.55cqw 0 0 var(--line);
-    display:flex;align-items:center;justify-content:center;
-    padding:0 5cqw 1.4cqw;
-  }
-  .title-box{width:100%;overflow:hidden;display:flex;justify-content:center}
-  .title{
-    white-space:nowrap;line-height:1.05;
-    font-size:calc(var(--ts,1) * 9.6cqw);
-    transform:translateY(.4cqw);
-  }
-  [data-font="hand"] .title{font-family:"Caveat","Nanum Pen Script",cursive;font-weight:700}
-  [data-font="type"] .title{font-family:"Special Elite","Courier New",monospace;font-weight:400;font-size:calc(var(--ts,1) * 7.4cqw)}
-  [data-font="sans"] .title{font-family:"Noto Sans KR",sans-serif;font-weight:700;font-size:calc(var(--ts,1) * 7cqw)}
+  /* ---------- title: sits on the first ruled line (y=121), like handwriting on a J-card ---------- */
+  .title-svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .title-svg text{fill:var(--ink)}
+  [data-font="hand"] .title-svg text{font-family:"Caveat","Nanum Pen Script",cursive;font-weight:700}
+  [data-font="type"] .title-svg text{font-family:"Special Elite","Courier New",monospace;font-weight:400}
+  [data-font="sans"] .title-svg text{font-family:"Noto Sans KR",sans-serif;font-weight:700}
 
-  /* gray band that holds the reels */
-  .reel-row{
-    flex:1;min-height:0;
-    background:var(--gray);
-    display:flex;align-items:center;justify-content:space-between;
-    padding:2.6cqw 3.2cqw;gap:2cqw;
-    position:relative;
+  /* ---------- reels ---------- */
+  .wheel{
+    position:absolute;top:calc(216*var(--u));
+    width:calc(121*var(--u));height:auto;
+    animation:spin 2.6s linear infinite;animation-play-state:paused;
+    will-change:transform;
   }
-  .reel-row::before,.reel-row::after{
-    content:"";position:absolute;top:14%;bottom:14%;width:10cqw;
-    background:repeating-linear-gradient(to bottom,transparent 0 1.8cqw,rgba(26,20,25,.16) 1.8cqw 2.05cqw);
-    pointer-events:none;
-  }
-  .reel-row::before{left:0}
-  .reel-row::after{right:0}
-  .side-badge{
-    position:relative;z-index:1;flex:0 0 auto;
-    min-width:5.6cqw;padding:.3cqw .9cqw;
-    border:.45cqw solid var(--wine);border-radius:.9cqw;
-    background:var(--gray);
-    color:var(--wine);font-weight:700;font-size:3cqw;text-align:center;
-  }
-  .minutes{
-    position:relative;z-index:1;flex:0 0 auto;
-    background:var(--gray);padding:0 .4cqw;
-    color:var(--wine);font-weight:700;font-size:4.6cqw;letter-spacing:-.02em;
-    font-variant-numeric:tabular-nums;
-  }
-  .window{
-    position:relative;z-index:1;
-    flex:1 1 auto;min-width:0;height:100%;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .window svg{width:100%;height:100%}
-  .rot{animation:spin 2.6s linear infinite;animation-play-state:paused;transform-box:view-box}
-  .rot-l{transform-origin:62px 28px}
-  .rot-r{transform-origin:168px 28px}
-  .playing .rot{animation-play-state:running}
+  .wheel.l{left:calc(221*var(--u))}
+  .wheel.r{left:calc(635*var(--u))}
+  .playing .wheel{animation-play-state:running}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @media (prefers-reduced-motion: reduce){ .rot{animation-duration:9s} }
+  @media (prefers-reduced-motion: reduce){ .wheel{animation-duration:9s} }
 
-  /* ---------- info line ---------- */
-  .foot{
-    flex:0 0 auto;
-    display:flex;align-items:center;gap:1.4cqw;
-    padding:1.6cqw 1.8cqw .4cqw;
-    color:var(--cream);
-  }
+  /* ---------- info bar ---------- */
   .ticker{
-    flex:0 0 auto;width:44%;
-    overflow:hidden;position:relative;height:4.4cqw;
-    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 94%,transparent 100%);
-            mask-image:linear-gradient(90deg,#000 0,#000 94%,transparent 100%);
+    position:absolute;left:calc(86*var(--u));top:calc(386*var(--u));
+    width:calc(266*var(--u));height:calc(50*var(--u));overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 93%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 0,#000 93%,transparent 100%);
   }
   .ticker-text{
-    position:absolute;left:0;top:0;
-    white-space:nowrap;
-    font-size:2.8cqw;line-height:4.4cqw;letter-spacing:.01em;opacity:.95;
+    position:absolute;left:0;top:calc(-1.5*var(--u));white-space:nowrap;color:#fff;
+    font-size:calc(26*var(--u));line-height:calc(50*var(--u));
   }
   .ticker-text.scroll{animation:slide var(--dur,9s) ease-in-out infinite alternate}
   @keyframes slide{
@@ -137,55 +79,84 @@
     86%,100%{transform:translateX(var(--dx,0px))}
   }
   @media (prefers-reduced-motion: reduce){ .ticker-text.scroll{animation-duration:calc(var(--dur,9s) * 2)} }
-  .note{flex:0 0 auto;font-size:3cqw;opacity:.95}
+  .note{
+    position:absolute;left:calc(368*var(--u));top:calc(400.3*var(--u));
+    width:calc(13.4*var(--u));height:calc(21*var(--u));
+  }
   .brand{
-    flex:0 0 auto;margin-left:auto;
-    font-size:2.9cqw;font-weight:700;letter-spacing:.08em;
+    position:absolute;right:calc(84*var(--u));top:calc(383*var(--u));
+    color:#fff;font-weight:700;font-size:calc(22.5*var(--u));line-height:calc(50*var(--u));letter-spacing:.08em;
   }
 
   /* ---------- controls ---------- */
-  .controls{
-    margin-top:2.4cqw;background:var(--body);border-radius:4cqw;
-    padding:3.2cqw 4.2cqw;display:flex;align-items:center;gap:3.4cqw;
-    box-shadow:0 1cqw 2.4cqw rgba(0,0,0,.18);
-  }
-  .btn{
-    flex:0 0 auto;border:0;cursor:pointer;display:grid;place-items:center;
-    background:var(--cream-hi);color:var(--ink);
-    width:9.2cqw;height:9.2cqw;border-radius:50%;
+  .cbtn{
+    position:absolute;top:calc(486*var(--u));
+    width:calc(113*var(--u));height:calc(113*var(--u));
+    border:0;border-radius:50%;cursor:pointer;
+    display:grid;place-items:center;
+    background:var(--cream);color:var(--ink);
     transition:transform .12s ease, filter .12s ease;
   }
-  .btn svg{width:46%;height:46%;fill:currentColor}
-  .btn:hover{filter:brightness(.94)}
-  .btn:active{transform:scale(.93)}
-  .btn:focus-visible{outline:.6cqw solid var(--wine-2);outline-offset:.4cqw}
-  .btn.main{background:var(--wine);color:var(--cream-hi);width:10.6cqw;height:10.6cqw}
-  .btn.rep{width:12.4cqw;height:7.6cqw;border-radius:2.4cqw;background:transparent;color:var(--cream);position:relative}
-  .btn.rep svg{width:58%;height:58%}
-  .btn.rep:hover{background:rgba(239,231,217,.14);filter:none}
-  .btn.rep[data-mode="one"]{background:var(--cream-hi);color:var(--ink)}
-  .btn.rep .one{position:absolute;right:1.5cqw;bottom:.9cqw;font-size:2.4cqw;font-weight:700;line-height:1;display:none}
-  .btn.rep[data-mode="one"] .one{display:block}
-
-  .bar{flex:1;min-width:0;height:7.6cqw;display:flex;align-items:center;cursor:pointer;touch-action:none}
-  .bar-track{position:relative;width:100%;height:1.1cqw;border-radius:1cqw;background:rgba(239,231,217,.26)}
-  .bar-fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:1cqw;background:var(--wine-2)}
-  .bar-knob{
-    position:absolute;top:50%;left:0%;width:3.6cqw;height:3.6cqw;border-radius:50%;
-    background:var(--wine);box-shadow:0 0 0 .5cqw rgba(239,231,217,.16);transform:translate(-50%,-50%);
+  .cbtn svg{width:36%;height:36%;fill:currentColor}
+  .cbtn.main{
+    top:calc(485.8*var(--u));width:calc(113.4*var(--u));height:calc(113.4*var(--u));
+    background:var(--wine);color:var(--cream);
+  }
+  .cbtn:hover{filter:brightness(.94)}
+  .cbtn.main:hover{filter:brightness(1.18)}
+  .cbtn:active{transform:scale(.94)}
+  .cbtn:focus-visible,.rep:focus-visible,.gear:focus-visible,.wave:focus-visible{
+    outline:calc(3*var(--u)) solid var(--cream);outline-offset:calc(3*var(--u));
   }
 
-  /* ---------- settings ---------- */
+  .wave{
+    position:absolute;left:calc(470*var(--u));top:calc(476*var(--u));
+    width:calc(359*var(--u));height:calc(133*var(--u));
+    cursor:pointer;touch-action:none;
+  }
+  .wave svg{display:block;width:100%;height:100%}
+
+  .rep{
+    position:absolute;left:calc(858*var(--u));top:calc(510*var(--u));
+    width:calc(80*var(--u));height:calc(74*var(--u));
+    border:0;border-radius:calc(14*var(--u));background:transparent;cursor:pointer;
+  }
+  .rep img{transition:opacity .12s ease}
+  .rep:hover img{opacity:.78}
+  .rep img{position:absolute;left:calc(6*var(--u));top:calc(7*var(--u));width:calc(50*var(--u));height:auto}
+  .rep .badge{
+    position:absolute;left:calc(45*var(--u));top:calc(39*var(--u));
+    width:calc(31*var(--u));height:calc(31*var(--u));border-radius:50%;
+    background:#F2F2F2;color:var(--ink);
+    display:none;
+  }
+  .rep .badge svg{display:block;width:100%;height:100%}
+  .rep[data-mode="one"] .badge{display:block}
+
+  /* ---------- settings button: invisible until the pointer is over the tape ---------- */
   .gear{
-    position:absolute;top:1.4cqw;right:1.4cqw;z-index:4;
-    width:7.4cqw;height:7.4cqw;min-width:26px;min-height:26px;border-radius:50%;
-    border:0;cursor:pointer;display:grid;place-items:center;
-    background:rgba(26,20,25,.55);color:#fff;
-    opacity:.92;transition:opacity .15s ease, background .15s ease;
+    position:absolute;z-index:4;
+    left:calc(908*var(--u));top:calc(58*var(--u));
+    width:max(26px,calc(46*var(--u)));height:max(26px,calc(46*var(--u)));
+    transform:translate(-50%,-50%);
+    border:0;border-radius:50%;cursor:pointer;
+    background:rgba(36,34,34,.85);
+    display:grid;place-items:center;
+    opacity:0;pointer-events:none;transition:opacity .18s ease;
   }
-  .stage:hover .gear,.gear:hover,.gear:focus-visible{opacity:1;background:rgba(26,20,25,.78)}
-  .gear svg{width:58%;height:58%;fill:currentColor}
+  .gear img{width:58%;height:58%}
+  .tape:hover .gear,.tape.reveal .gear,.gear:focus-visible{opacity:1;pointer-events:auto}
 
+  .toast{
+    position:absolute;left:50%;top:calc(14*var(--u));transform:translateX(-50%);
+    background:var(--wine);color:#fff;font-size:max(11px,calc(19*var(--u)));font-weight:700;
+    padding:.45em 1em;border-radius:999px;opacity:0;transition:opacity .2s ease;
+    white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;
+    pointer-events:none;z-index:9;
+  }
+  .toast.show{opacity:1}
+
+  /* ---------- settings sheet ---------- */
   .sheet{
     position:fixed;inset:0;z-index:6;background:rgba(20,16,19,.98);
     padding:16px;overflow:auto;-webkit-overflow-scrolling:touch;display:none;color:var(--cream);
@@ -236,96 +207,102 @@
     border:1px solid rgba(239,231,217,.22);background:rgba(255,255,255,.06);
     color:var(--cream);font-size:10.5px;font-family:ui-monospace,monospace;
   }
-  .toast{
-    position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
-    background:var(--wine);color:#fff;font-size:11px;font-weight:700;
-    padding:6px 12px;border-radius:999px;opacity:0;transition:opacity .2s ease;
-    white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;
-    pointer-events:none;z-index:9;
-  }
-  .toast.show{opacity:1}
 </style>
 </head>
 <body>
-<div class="stage" id="stage" data-font="hand">
+<div class="stage">
+  <div class="tape" id="tape" data-font="hand">
+    <img class="bg" src="assets/cassette.png" alt="" draggable="false">
 
-  <button class="gear" id="gear" type="button" aria-label="위젯 설정 열기" title="설정">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9.4 4a7.5 7.5 0 0 1-.1 1.2l2 1.6-1.9 3.3-2.4-1a7.6 7.6 0 0 1-2 1.2l-.4 2.6h-3.8l-.4-2.6a7.6 7.6 0 0 1-2-1.2l-2.4 1-1.9-3.3 2-1.6a7.5 7.5 0 0 1 0-2.4l-2-1.6 1.9-3.3 2.4 1a7.6 7.6 0 0 1 2-1.2L12.8 2h3.8l.4 2.6c.7.3 1.4.7 2 1.2l2.4-1 1.9 3.3-2 1.6c.1.4.1.8.1 1.3z"/></svg>
-  </button>
+    <svg class="title-svg" viewBox="0 0 975 627" aria-hidden="true">
+      <text id="title" x="486.5" y="119.5" text-anchor="middle" font-size="100">Love Songs</text>
+    </svg>
 
-  <div class="cassette">
-    <div class="panel">
-      <div class="title-strip">
-        <div class="title-box" id="titleBox"><div class="title" id="title">Love Songs</div></div>
-      </div>
-      <div class="reel-row">
-        <div class="side-badge" id="badge">A</div>
-        <div class="window">
-          <svg viewBox="0 0 230 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <defs><clipPath id="winClip"><rect x="42" y="5" width="146" height="46" rx="23"/></clipPath></defs>
-            <rect x="42" y="5" width="146" height="46" rx="23" fill="#1a1419"/>
-            <g clip-path="url(#winClip)">
-              <circle cx="62" cy="28" r="36" fill="#3b261a"/>
-              <circle cx="168" cy="28" r="24" fill="#3b261a"/>
-            </g>
-            <circle cx="62" cy="28" r="20" fill="#fbf7ee"/>
-            <circle cx="168" cy="28" r="20" fill="#fbf7ee"/>
-            <g class="rot rot-l">
-              <circle cx="62" cy="28" r="14.6" fill="#1a1419"/>
-              <g fill="#fbf7ee">
-                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7"/>
-                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 62 28)"/>
-                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 62 28)"/>
-                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 62 28)"/>
-              </g>
-              <circle cx="62" cy="28" r="3.6" fill="#1a1419"/>
-            </g>
-            <g class="rot rot-r">
-              <circle cx="168" cy="28" r="14.6" fill="#1a1419"/>
-              <g fill="#fbf7ee">
-                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7"/>
-                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 168 28)"/>
-                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 168 28)"/>
-                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 168 28)"/>
-              </g>
-              <circle cx="168" cy="28" r="3.6" fill="#1a1419"/>
-            </g>
-            <circle cx="104" cy="28" r="2.6" fill="#8d8779"/>
-            <circle cx="126" cy="28" r="2.6" fill="#8d8779"/>
-            <rect x="108" y="20" width="14" height="16" rx="2" fill="#6f6a5c"/>
-          </svg>
-        </div>
-        <div class="minutes" id="minutes" title="테이프 카운터">60</div>
-      </div>
-    </div>
-    <div class="foot">
-      <div class="ticker"><span class="ticker-text" id="sub">pon play para empezar</span></div>
-      <span class="note" aria-hidden="true">♪</span>
-      <div class="brand">AUDIO TAPE</div>
-    </div>
-  </div>
+    <img class="wheel l" src="assets/wheel.png" alt="" draggable="false">
+    <img class="wheel r" src="assets/wheel.png" alt="" draggable="false">
 
-  <div class="controls">
-    <button class="btn" id="prev" type="button" aria-label="이전 곡">
+    <div class="ticker"><span class="ticker-text" id="sub">pon play para empezar</span></div>
+    <svg class="note" viewBox="0 0 14 22" aria-hidden="true"><g fill="#fff"><rect x="6" y="0.6" width="1.7" height="17.4"/><ellipse cx="3.3" cy="19.3" rx="3.5" ry="1.95" transform="rotate(-28 3.3 19.3)"/><path d="M7.7 .7C9.4 1.9 11.6 3.3 13.3 6.6C13.9 8.6 13.5 11.4 11.6 16.3C11.9 13.8 12.1 10.8 11.2 8.9C10.2 6.8 9 5 7.7 3.9Z"/></g></svg>
+    <span class="brand">AUDIO TAPE</span>
+
+    <button class="cbtn" id="prev" type="button" style="left:calc(25*var(--u))" aria-label="이전 곡">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.5v14H6zm12.5 0v14L8.9 12z"/></svg>
     </button>
-    <button class="btn main" id="play" type="button" aria-label="재생" aria-pressed="false">
+    <button class="cbtn main" id="play" type="button" style="left:calc(173.3*var(--u))" aria-label="재생" aria-pressed="false">
       <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5 19.5 12 7 19.5z"/></svg>
     </button>
-    <button class="btn" id="next" type="button" aria-label="다음 곡">
+    <button class="cbtn" id="next" type="button" style="left:calc(322*var(--u))" aria-label="다음 곡">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 5H18v14h-2.5zM5.5 5l9.6 7-9.6 7z"/></svg>
     </button>
-    <div class="bar" id="bar" role="slider" tabindex="0" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-      <div class="bar-track"><div class="bar-fill" id="fill"></div><div class="bar-knob" id="knob"></div></div>
-    </div>
-    <button class="btn rep" id="rep" type="button" data-mode="all" aria-label="반복 모드: 전체 반복">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v2.6l4-3.8-4-3.8V5H5v6h2zm10 10H7v-2.6l-4 3.8 4 3.8V19h12v-6h-2z"/></svg>
-      <span class="one">1</span>
-    </button>
-  </div>
 
+    <div class="wave" id="bar" role="slider" tabindex="0" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <svg viewBox="470 476 359 133" aria-hidden="true">
+        <defs>
+          <linearGradient id="wg" gradientUnits="userSpaceOnUse" x1="470" y1="0" x2="829" y2="0">
+            <stop id="wgA" offset="0" stop-color="#FBF7EE"/>
+            <stop id="wgB" offset="0" stop-color="#A8A49F"/>
+          </linearGradient>
+        </defs>
+        <g fill="url(#wg)">
+          <rect x="470" y="519.61" width="5" height="46.06" rx="2.5"/>
+          <rect x="479" y="513.515" width="4" height="58.25" rx="2"/>
+          <rect x="487" y="490.11" width="5" height="105.06" rx="2.5"/>
+          <rect x="496" y="513.62" width="5" height="58.04" rx="2.5"/>
+          <rect x="505" y="481.975" width="4" height="121.33" rx="2"/>
+          <rect x="513" y="513.62" width="5" height="58.04" rx="2.5"/>
+          <rect x="522" y="498.61" width="5" height="88.06" rx="2.5"/>
+          <rect x="530" y="513.62" width="5" height="58.04" rx="2.5"/>
+          <rect x="539" y="482.62" width="5" height="120.04" rx="2.5"/>
+          <rect x="548" y="497.01" width="4" height="91.26" rx="2"/>
+          <rect x="556" y="482.62" width="5" height="120.04" rx="2.5"/>
+          <rect x="565" y="490.11" width="5" height="105.06" rx="2.5"/>
+          <rect x="574" y="482.51" width="4" height="120.26" rx="2"/>
+          <rect x="582" y="516.61" width="5" height="52.06" rx="2.5"/>
+          <rect x="591" y="515.11" width="5" height="55.06" rx="2.5"/>
+          <rect x="600" y="482.505" width="4" height="120.27" rx="2"/>
+          <rect x="608" y="482.62" width="5" height="120.04" rx="2.5"/>
+          <rect x="617" y="482.62" width="5" height="120.04" rx="2.5"/>
+          <rect x="625" y="513.62" width="5" height="58.04" rx="2.5"/>
+          <rect x="634" y="513.6" width="5" height="58.08" rx="2.5"/>
+          <rect x="643" y="482.6" width="5" height="120.08" rx="2.5"/>
+          <rect x="651" y="512.1" width="5" height="61.08" rx="2.5"/>
+          <rect x="660" y="482.6" width="5" height="120.08" rx="2.5"/>
+          <rect x="669" y="515.005" width="4" height="55.27" rx="2"/>
+          <rect x="677" y="516.61" width="5" height="52.06" rx="2.5"/>
+          <rect x="686" y="482.6" width="5" height="120.08" rx="2.5"/>
+          <rect x="695" y="490.005" width="4" height="105.27" rx="2"/>
+          <rect x="703" y="482.6" width="5" height="120.08" rx="2.5"/>
+          <rect x="712" y="497.1" width="5" height="91.08" rx="2.5"/>
+          <rect x="721" y="482.505" width="4" height="120.27" rx="2"/>
+          <rect x="729" y="513.6" width="5" height="58.08" rx="2.5"/>
+          <rect x="738" y="498.61" width="5" height="88.06" rx="2.5"/>
+          <rect x="746" y="513.6" width="5" height="58.08" rx="2.5"/>
+          <rect x="755" y="482.6" width="5" height="120.08" rx="2.5"/>
+          <rect x="764" y="513.505" width="4" height="58.27" rx="2"/>
+          <rect x="772" y="490.11" width="5" height="105.06" rx="2.5"/>
+          <rect x="781" y="513.6" width="5" height="58.08" rx="2.5"/>
+          <rect x="790" y="495.505" width="4" height="94.27" rx="2"/>
+          <rect x="798" y="499.6" width="5" height="86.08" rx="2.5"/>
+          <rect x="807" y="510.61" width="5" height="64.06" rx="2.5"/>
+          <rect x="816" y="513.505" width="4" height="58.27" rx="2"/>
+          <rect x="824" y="521.11" width="5" height="43.06" rx="2.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <button class="rep" id="rep" type="button" data-mode="all" aria-label="반복 모드: 전체 반복">
+      <img src="assets/repeat.png" alt="" draggable="false">
+      <span class="badge" aria-hidden="true"><svg viewBox="0 0 31 31"><g fill="#242222"><rect x="15.55" y="7.5" width="1.65" height="15.5"/><path d="M16.86 8.66L16.14 7.34L11.34 9.94L12.06 11.26Z"/></g></svg></span>
+    </button>
+
+    <button class="gear" id="gear" type="button" aria-label="위젯 설정 열기" title="설정">
+      <img src="assets/settings.png" alt="" draggable="false">
+    </button>
+
+    <div class="toast" id="toast"></div>
+  </div>
   <div class="yt-host"><div id="yt"></div></div>
-  <div class="toast" id="toast"></div>
+</div>
 
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="위젯 설정">
     <h2>카세트 설정 <button class="close" id="closeSheet" type="button" aria-label="닫기">✕</button></h2>
@@ -366,17 +343,15 @@
     </div>
     <input class="linkout" id="linkout" type="text" readonly aria-label="임베드 주소">
   </div>
-</div>
-
 <script>
 (function(){
   "use strict";
 
   var $ = function(id){ return document.getElementById(id); };
-  var stage=$('stage'), titleEl=$('title'), titleBox=$('titleBox'), subEl=$('sub'),
-      minutesEl=$('minutes'), badgeEl=$('badge'),
+  var tape=$('tape'), titleEl=$('title'), subEl=$('sub'),
       playBtn=$('play'), playIcon=$('playIcon'), repBtn=$('rep'),
-      bar=$('bar'), fill=$('fill'), knob=$('knob'), toastEl=$('toast'), sheet=$('sheet');
+      bar=$('bar'), wgA=$('wgA'), wgB=$('wgB'), gear=$('gear'),
+      toastEl=$('toast'), sheet=$('sheet');
 
   var MAX_TRACKS=20;
   var ICON_PLAY='M7 4.5 19.5 12 7 19.5z';
@@ -464,21 +439,20 @@
   function embedURL(cfg){ return location.origin+location.pathname+'?'+toParams(cfg); }
 
   /* ---------------- title auto-fit ---------------- */
-  var fitPending=false;
+  /* The title is SVG text on the label's ruled lines (975x627 sheet coordinates),
+     so it scales with the cassette; only the font size needs fitting. */
+  var TITLE_SIZE={hand:100,type:76,sans:74};   /* starting size per face */
+  var TITLE_MAXW=796;                          /* the ruled lines are 808 wide */
   function fitTitle(){
-    if(fitPending) return;
-    fitPending=true;
-    requestAnimationFrame(function(){
-      fitPending=false;
-      var scale=1, guard=0;
-      titleEl.style.setProperty('--ts',scale);
-      while(titleEl.scrollWidth>titleBox.clientWidth && scale>0.38 && guard++<40){
-        scale-=0.035;
-        titleEl.style.setProperty('--ts',scale.toFixed(3));
-      }
-    });
+    var fs=TITLE_SIZE[S.font]||TITLE_SIZE.hand, w, i;
+    titleEl.setAttribute('font-size',fs);
+    for(i=0;i<5;i++){
+      w=titleEl.getComputedTextLength?titleEl.getComputedTextLength():0;
+      if(!(w>TITLE_MAXW)) break;
+      fs=Math.max(14,fs*TITLE_MAXW/w*0.995);
+      titleEl.setAttribute('font-size',fs.toFixed(2));
+    }
   }
-  if(window.ResizeObserver) new ResizeObserver(fitTitle).observe(titleBox);
 
   /* ---------------- marquee ticker ---------------- */
   var tickerText='';
@@ -501,28 +475,27 @@
   function refitTicker(){ var t=tickerText; tickerText=''; setTicker(t); }
   if(window.ResizeObserver) new ResizeObserver(refitTicker).observe(subEl.parentNode);
   window.addEventListener('resize',function(){ fitTitle(); refitTicker(); });
-  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fitTitle(); refitTicker(); }).catch(function(){});
+  if(document.fonts){
+    if(document.fonts.ready) document.fonts.ready.then(function(){ fitTitle(); refitTicker(); }).catch(function(){});
+    if(document.fonts.addEventListener) document.fonts.addEventListener('loadingdone',function(){ fitTitle(); refitTicker(); });
+  }
 
   /* ---------------- render ---------------- */
   function applyConfig(cfg,opts){
     S=cfg;
-    stage.setAttribute('data-font',S.font);
+    tape.setAttribute('data-font',S.font);
     titleEl.textContent=S.title||'';
-    titleEl.style.setProperty('--ts',1);
     fitTitle();
     setRepeat(S.repeat,true);
     renderIdle();
-    updateBadge();
     if(!opts||!opts.skipPlayer) resetPlayback();
   }
 
   function renderIdle(){
     if(!playing){
-      setTicker(S.tracks.length ? (S.sub||'') : '설정(⚙)에서 유튜브 주소를 넣어주세요');
-      minutesEl.textContent='60';
+      setTicker(S.tracks.length ? (S.sub||'') : '⚙ 설정에서 유튜브 주소를 넣어주세요');
     }
   }
-  function updateBadge(){ badgeEl.textContent=S.tracks.length>1?('A'+(cur+1)):'A'; }
 
   function toast(msg){
     toastEl.textContent=msg;
@@ -564,7 +537,6 @@
   function cueTrack(i,autoplay){
     if(!ready||!S.tracks.length) return;
     cur=((i%S.tracks.length)+S.tracks.length)%S.tracks.length;
-    updateBadge();
     var t=S.tracks[cur];
     if(t.kind==='p'){
       if(autoplay) player.loadPlaylist({list:t.id,listType:'playlist',index:0});
@@ -579,7 +551,7 @@
 
   function resetPlayback(){
     cur=0; playing=false; setPlayIcon(false);
-    stage.classList.remove('playing');
+    tape.classList.remove('playing');
     setProgress(0,0);
     renderIdle();
     if(ready) cueTrack(0,false);
@@ -618,7 +590,7 @@
   function onState(e){
     var st=e.data;
     playing=(st===YT.PlayerState.PLAYING);
-    stage.classList.toggle('playing',playing);
+    tape.classList.toggle('playing',playing);
     setPlayIcon(playing);
     if(st===YT.PlayerState.PLAYING||st===YT.PlayerState.PAUSED){
       var d=player.getVideoData?player.getVideoData():null;
@@ -644,13 +616,10 @@
 
   function setProgress(ratio,dur,now){
     var r=Math.max(0,Math.min(1,ratio||0));
-    fill.style.width=(r*100)+'%';
-    knob.style.left=(r*100)+'%';
+    wgA.setAttribute('offset',r);          /* bars left of the offset are cream, the rest gray */
+    wgB.setAttribute('offset',r);
     bar.setAttribute('aria-valuenow',Math.round(r*100));
-    if(dur>0){
-      minutesEl.textContent=fmt(now||0);
-      bar.setAttribute('aria-valuetext',fmt(now||0)+' / '+fmt(dur));
-    }
+    if(dur>0) bar.setAttribute('aria-valuetext',fmt(now||0)+' / '+fmt(dur));
   }
 
   setInterval(function(){
@@ -699,7 +668,7 @@
   document.addEventListener('keydown',function(ev){
     if(sheet.classList.contains('open')) return;
     var tag=(ev.target.tagName||'').toLowerCase();
-    if(tag==='input'||tag==='select') return;
+    if(tag==='input'||tag==='select'||tag==='button') return;   /* buttons handle Space themselves */
     if(ev.code==='Space'){ ev.preventDefault(); toggle(); }
   });
 
@@ -793,7 +762,16 @@
     return cfg;
   }
 
-  $('gear').addEventListener('click',openSheet);
+  gear.addEventListener('click',openSheet);
+
+  /* touch screens have no hover: a tap on the tape shows the gear for a few seconds */
+  var revealTimer;
+  tape.addEventListener('pointerdown',function(ev){
+    if(ev.pointerType!=='touch') return;
+    tape.classList.add('reveal');
+    clearTimeout(revealTimer);
+    revealTimer=setTimeout(function(){ tape.classList.remove('reveal'); },3500);
+  });
   $('closeSheet').addEventListener('click',closeSheet);
   document.addEventListener('keydown',function(ev){ if(ev.key==='Escape') closeSheet(); });
 
@@ -824,6 +802,10 @@
   /* ---------------- boot ---------------- */
   applyConfig(readConfig(),{skipPlayer:true});
   loadAPI();
+  window.addEventListener('load',function(){
+    var broken=Array.prototype.some.call(tape.querySelectorAll('img'),function(img){ return !img.naturalWidth; });
+    if(broken) toast('이미지를 불러오지 못했어요 (assets 폴더 확인)');
+  });
 })();
 </script>
 </body>
