@@ -107,8 +107,8 @@
   }
   .window svg{width:100%;height:100%}
   .rot{animation:spin 2.6s linear infinite;animation-play-state:paused;transform-box:view-box}
-  .rot-l{transform-origin:20px 28px}
-  .rot-r{transform-origin:126px 28px}
+  .rot-l{transform-origin:62px 28px}
+  .rot-r{transform-origin:168px 28px}
   .playing .rot{animation-play-state:running}
   @keyframes spin{to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion: reduce){ .rot{animation-duration:9s} }
@@ -261,38 +261,38 @@
       <div class="reel-row">
         <div class="side-badge" id="badge">A</div>
         <div class="window">
-          <svg viewBox="0 0 146 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <defs><clipPath id="winClip"><rect x="0" y="5" width="146" height="46" rx="23"/></clipPath></defs>
-            <rect x="0" y="5" width="146" height="46" rx="23" fill="#1a1419"/>
+          <svg viewBox="0 0 230 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><clipPath id="winClip"><rect x="42" y="5" width="146" height="46" rx="23"/></clipPath></defs>
+            <rect x="42" y="5" width="146" height="46" rx="23" fill="#1a1419"/>
             <g clip-path="url(#winClip)">
-              <circle cx="20" cy="28" r="36" fill="#3b261a"/>
-              <circle cx="126" cy="28" r="24" fill="#3b261a"/>
+              <circle cx="62" cy="28" r="36" fill="#3b261a"/>
+              <circle cx="168" cy="28" r="24" fill="#3b261a"/>
             </g>
-            <circle cx="20" cy="28" r="20" fill="#fbf7ee"/>
-            <circle cx="126" cy="28" r="20" fill="#fbf7ee"/>
+            <circle cx="62" cy="28" r="20" fill="#fbf7ee"/>
+            <circle cx="168" cy="28" r="20" fill="#fbf7ee"/>
             <g class="rot rot-l">
-              <circle cx="20" cy="28" r="14.6" fill="#1a1419"/>
+              <circle cx="62" cy="28" r="14.6" fill="#1a1419"/>
               <g fill="#fbf7ee">
-                <rect x="18.3" y="15" width="3.4" height="26" rx="1.7"/>
-                <rect x="18.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 20 28)"/>
-                <rect x="18.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 20 28)"/>
-                <rect x="18.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 20 28)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 62 28)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 62 28)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 62 28)"/>
               </g>
-              <circle cx="20" cy="28" r="3.6" fill="#1a1419"/>
+              <circle cx="62" cy="28" r="3.6" fill="#1a1419"/>
             </g>
             <g class="rot rot-r">
-              <circle cx="126" cy="28" r="14.6" fill="#1a1419"/>
+              <circle cx="168" cy="28" r="14.6" fill="#1a1419"/>
               <g fill="#fbf7ee">
-                <rect x="124.3" y="15" width="3.4" height="26" rx="1.7"/>
-                <rect x="124.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 126 28)"/>
-                <rect x="124.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 126 28)"/>
-                <rect x="124.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 126 28)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 168 28)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 168 28)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 168 28)"/>
               </g>
-              <circle cx="126" cy="28" r="3.6" fill="#1a1419"/>
+              <circle cx="168" cy="28" r="3.6" fill="#1a1419"/>
             </g>
-            <circle cx="62" cy="28" r="2.6" fill="#8d8779"/>
-            <circle cx="84" cy="28" r="2.6" fill="#8d8779"/>
-            <rect x="66" y="20" width="14" height="16" rx="2" fill="#6f6a5c"/>
+            <circle cx="104" cy="28" r="2.6" fill="#8d8779"/>
+            <circle cx="126" cy="28" r="2.6" fill="#8d8779"/>
+            <rect x="108" y="20" width="14" height="16" rx="2" fill="#6f6a5c"/>
           </svg>
         </div>
         <div class="minutes" id="minutes" title="테이프 카운터">60</div>
