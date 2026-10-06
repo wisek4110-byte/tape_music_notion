@@ -107,8 +107,8 @@
   }
   .window svg{width:100%;height:100%}
   .rot{animation:spin 2.6s linear infinite;animation-play-state:paused;transform-box:view-box}
-  .rot-l{transform-origin:62px 50px}
-  .rot-r{transform-origin:168px 50px}
+  .rot-l{transform-origin:62px 28px}
+  .rot-r{transform-origin:168px 28px}
   .playing .rot{animation-play-state:running}
   @keyframes spin{to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion: reduce){ .rot{animation-duration:9s} }
@@ -160,9 +160,10 @@
   .btn:active{transform:scale(.93)}
   .btn:focus-visible{outline:.6cqw solid var(--wine-2);outline-offset:.4cqw}
   .btn.main{background:var(--wine);color:var(--cream-hi);width:10.6cqw;height:10.6cqw}
-  .btn.rep{width:12.4cqw;height:7.6cqw;border-radius:2.4cqw;background:var(--wine);color:var(--cream-hi);position:relative}
+  .btn.rep{width:12.4cqw;height:7.6cqw;border-radius:2.4cqw;background:transparent;color:var(--cream);position:relative}
   .btn.rep svg{width:58%;height:58%}
-  .btn.rep[data-mode="one"]{background:var(--cream-hi);color:var(--wine)}
+  .btn.rep:hover{background:rgba(239,231,217,.14);filter:none}
+  .btn.rep[data-mode="one"]{background:var(--cream-hi);color:var(--ink)}
   .btn.rep .one{position:absolute;right:1.5cqw;bottom:.9cqw;font-size:2.4cqw;font-weight:700;line-height:1;display:none}
   .btn.rep[data-mode="one"] .one{display:block}
 
@@ -176,13 +177,13 @@
 
   /* ---------- settings ---------- */
   .gear{
-    position:absolute;top:1.6cqw;right:1.6cqw;z-index:4;
-    width:7cqw;height:7cqw;min-width:26px;min-height:26px;border-radius:50%;
+    position:absolute;top:1.4cqw;right:1.4cqw;z-index:4;
+    width:7.4cqw;height:7.4cqw;min-width:26px;min-height:26px;border-radius:50%;
     border:0;cursor:pointer;display:grid;place-items:center;
-    background:rgba(239,231,217,.16);color:var(--cream);
-    opacity:0;transition:opacity .15s ease;
+    background:rgba(26,20,25,.55);color:#fff;
+    opacity:.92;transition:opacity .15s ease, background .15s ease;
   }
-  .stage:hover .gear,.gear:focus-visible{opacity:1}
+  .stage:hover .gear,.gear:hover,.gear:focus-visible{opacity:1;background:rgba(26,20,25,.78)}
   .gear svg{width:58%;height:58%;fill:currentColor}
 
   .sheet{
@@ -260,35 +261,38 @@
       <div class="reel-row">
         <div class="side-badge" id="badge">A</div>
         <div class="window">
-          <svg viewBox="0 0 230 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <rect x="0" y="0" width="230" height="100" rx="50" fill="#1a1419"/>
-            <circle cx="62" cy="50" r="36" fill="#3b261a"/>
-            <circle cx="168" cy="50" r="24" fill="#3b261a"/>
-            <circle cx="62" cy="50" r="18" fill="#fbf7ee"/>
-            <circle cx="168" cy="50" r="18" fill="#fbf7ee"/>
+          <svg viewBox="0 0 230 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><clipPath id="winClip"><rect x="0" y="5" width="230" height="46" rx="23"/></clipPath></defs>
+            <rect x="0" y="5" width="230" height="46" rx="23" fill="#1a1419"/>
+            <g clip-path="url(#winClip)">
+              <circle cx="62" cy="28" r="36" fill="#3b261a"/>
+              <circle cx="168" cy="28" r="24" fill="#3b261a"/>
+            </g>
+            <circle cx="62" cy="28" r="20" fill="#fbf7ee"/>
+            <circle cx="168" cy="28" r="20" fill="#fbf7ee"/>
             <g class="rot rot-l">
-              <circle cx="62" cy="50" r="13.2" fill="#1a1419"/>
+              <circle cx="62" cy="28" r="14.6" fill="#1a1419"/>
               <g fill="#fbf7ee">
-                <rect x="60.4" y="38.6" width="3.2" height="22.8" rx="1.6"/>
-                <rect x="60.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(45 62 50)"/>
-                <rect x="60.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(90 62 50)"/>
-                <rect x="60.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(135 62 50)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 62 28)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 62 28)"/>
+                <rect x="60.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 62 28)"/>
               </g>
-              <circle cx="62" cy="50" r="3.4" fill="#1a1419"/>
+              <circle cx="62" cy="28" r="3.6" fill="#1a1419"/>
             </g>
             <g class="rot rot-r">
-              <circle cx="168" cy="50" r="13.2" fill="#1a1419"/>
+              <circle cx="168" cy="28" r="14.6" fill="#1a1419"/>
               <g fill="#fbf7ee">
-                <rect x="166.4" y="38.6" width="3.2" height="22.8" rx="1.6"/>
-                <rect x="166.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(45 168 50)"/>
-                <rect x="166.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(90 168 50)"/>
-                <rect x="166.4" y="38.6" width="3.2" height="22.8" rx="1.6" transform="rotate(135 168 50)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(45 168 28)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(90 168 28)"/>
+                <rect x="166.3" y="15" width="3.4" height="26" rx="1.7" transform="rotate(135 168 28)"/>
               </g>
-              <circle cx="168" cy="50" r="3.4" fill="#1a1419"/>
+              <circle cx="168" cy="28" r="3.6" fill="#1a1419"/>
             </g>
-            <circle cx="104" cy="50" r="2.6" fill="#8d8779"/>
-            <circle cx="126" cy="50" r="2.6" fill="#8d8779"/>
-            <rect x="108" y="42" width="14" height="16" rx="2" fill="#6f6a5c"/>
+            <circle cx="104" cy="28" r="2.6" fill="#8d8779"/>
+            <circle cx="126" cy="28" r="2.6" fill="#8d8779"/>
+            <rect x="108" y="20" width="14" height="16" rx="2" fill="#6f6a5c"/>
           </svg>
         </div>
         <div class="minutes" id="minutes" title="테이프 카운터">60</div>
