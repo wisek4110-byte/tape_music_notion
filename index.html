@@ -112,7 +112,6 @@
   .playing .rot{animation-play-state:running}
   @keyframes spin{to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion: reduce){ .rot{animation-duration:9s} }
-  .pack{transition:r .25s linear}
 
   /* ---------- info line ---------- */
   .foot{
@@ -262,13 +261,9 @@
         <div class="side-badge" id="badge">A</div>
         <div class="window">
           <svg viewBox="0 0 230 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <g fill="#1a1419">
-              <circle cx="62" cy="50" r="42"/>
-              <circle cx="168" cy="50" r="42"/>
-              <rect x="62" y="30" width="106" height="40" rx="5"/>
-            </g>
-            <circle id="packL" class="pack" cx="62" cy="50" r="36" fill="#3b261a"/>
-            <circle id="packR" class="pack" cx="168" cy="50" r="24" fill="#3b261a"/>
+            <rect x="0" y="0" width="230" height="100" rx="50" fill="#1a1419"/>
+            <circle cx="62" cy="50" r="36" fill="#3b261a"/>
+            <circle cx="168" cy="50" r="24" fill="#3b261a"/>
             <circle cx="62" cy="50" r="18" fill="#fbf7ee"/>
             <circle cx="168" cy="50" r="18" fill="#fbf7ee"/>
             <g class="rot rot-l">
@@ -375,14 +370,13 @@
 
   var $ = function(id){ return document.getElementById(id); };
   var stage=$('stage'), titleEl=$('title'), titleBox=$('titleBox'), subEl=$('sub'),
-      minutesEl=$('minutes'), badgeEl=$('badge'), packL=$('packL'), packR=$('packR'),
+      minutesEl=$('minutes'), badgeEl=$('badge'),
       playBtn=$('play'), playIcon=$('playIcon'), repBtn=$('rep'),
       bar=$('bar'), fill=$('fill'), knob=$('knob'), toastEl=$('toast'), sheet=$('sheet');
 
   var MAX_TRACKS=20;
   var ICON_PLAY='M7 4.5 19.5 12 7 19.5z';
   var ICON_PAUSE='M7 5h3.6v14H7zm6.4 0H17v14h-3.6z';
-  var R_MIN=24, R_MAX=36;   /* tape pack radius range, svg units */
 
   var DEFAULTS={
     title:'Love Songs',
@@ -526,17 +520,6 @@
   }
   function updateBadge(){ badgeEl.textContent=S.tracks.length>1?('A'+(cur+1)):'A'; }
 
-  /* tape packs: total tape is constant, so rL² + rR² stays constant */
-  function setPacks(ratio){
-    var t=Math.max(0,Math.min(1,ratio||0));
-    var sum=R_MIN*R_MIN+R_MAX*R_MAX;
-    var rL=Math.sqrt(R_MAX*R_MAX-(R_MAX*R_MAX-R_MIN*R_MIN)*t);
-    var rR=Math.sqrt(sum-rL*rL);
-    packL.setAttribute('r',rL.toFixed(2));
-    packR.setAttribute('r',rR.toFixed(2));
-  }
-  setPacks(0);
-
   function toast(msg){
     toastEl.textContent=msg;
     toastEl.classList.add('show');
@@ -660,7 +643,6 @@
     fill.style.width=(r*100)+'%';
     knob.style.left=(r*100)+'%';
     bar.setAttribute('aria-valuenow',Math.round(r*100));
-    setPacks(r);
     if(dur>0){
       minutesEl.textContent=fmt(now||0);
       bar.setAttribute('aria-valuetext',fmt(now||0)+' / '+fmt(dur));
