@@ -43,6 +43,17 @@
   .bg{position:absolute;left:0;top:0;width:100%;height:100%}
   .yt-host{position:absolute;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1}
   .yt-note,.yt-close{display:none}
+  /* Direct-click mode. Chrome only lets a frame start media on its own when the host delegated autoplay to
+     it, or when the user clicked INSIDE that frame. Where the host (e.g. Notion) delegates nothing, the
+     invisible YouTube player is laid exactly over the play button, so the first click lands in YouTube's
+     own frame. Only its centre (the big play button) is exposed; title/logo links are clipped away. */
+  .yt-host.direct{
+    left:calc(173.3*var(--u));top:calc(485.8*var(--u));bottom:auto;
+    width:calc(113.4*var(--u));height:calc(113.4*var(--u));
+    border-radius:50%;overflow:hidden;opacity:.01;pointer-events:auto;z-index:5;cursor:pointer;
+  }
+  .yt-host.direct iframe{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(480*var(--u));height:calc(270*var(--u));border:0}
+  .yt-host.direct:hover ~ #play{filter:brightness(1.18)}
   /* shown only when playback cannot start by itself (an embed that blocks autoplay): it covers exactly
      the cassette, so it fits whatever size the embed block has */
   .yt-host.show{
@@ -241,6 +252,8 @@
     <svg class="note" viewBox="0 0 14 22" aria-hidden="true"><g fill="#fff"><rect x="6" y="0.6" width="1.7" height="17.4"/><ellipse cx="3.3" cy="19.3" rx="3.5" ry="1.95" transform="rotate(-28 3.3 19.3)"/><path d="M7.7 .7C9.4 1.9 11.6 3.3 13.3 6.6C13.9 8.6 13.5 11.4 11.6 16.3C11.9 13.8 12.1 10.8 11.2 8.9C10.2 6.8 9 5 7.7 3.9Z"/></g></svg>
     <span class="brand">AUDIO TAPE</span>
 
+    <div class="yt-host" id="ytHost"><div class="yt-note" id="ytNote"></div><div id="yt"></div><button class="yt-close" id="ytClose" type="button" aria-label="닫기">✕</button></div>
+
     <button class="cbtn" id="prev" type="button" style="left:calc(25*var(--u))" aria-label="이전 곡">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.5v14H6zm12.5 0v14L8.9 12z"/></svg>
     </button>
@@ -274,7 +287,6 @@
 
     <div class="toast" id="toast"></div>
   </div>
-  <div class="yt-host" id="ytHost"><div class="yt-note" id="ytNote"></div><div id="yt"></div><button class="yt-close" id="ytClose" type="button" aria-label="닫기">✕</button></div>
 </div>
 
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="위젯 설정">
@@ -511,6 +523,7 @@
     if(player&&player.destroy){ try{ player.destroy(); }catch(e){} }
     player=null; ready=false;
     if(!$('yt')){ var d=document.createElement('div'); d.id='yt'; $('ytHost').insertBefore(d,$('ytClose')); }
+    everPlayed=false;                      /* a fresh frame has had no user click yet */
     player=new YT.Player('yt',{
       host:YT_HOSTS[hostIdx],
       height:'2', width:'2',
@@ -521,6 +534,7 @@
         onError:onError
       }
     });
+    setDirect(wantDirect());
   }
   window.onYouTubeIframeAPIReady=buildPlayer;
   function loadAPI(){
@@ -546,24 +560,39 @@
     if(!ready) return '유튜브 플레이어가 응답하지 않아요.';
     return '자동 재생이 막힌 환경이에요. 아래 \u25b6 를 한 번만 눌러 주세요.';
   }
+  function wantDirect(){ return !everPlayed && autoplayBlocked(); }
+  function setDirect(on){ $('ytHost').classList.toggle('direct',!!on); }
   function showPlayer(msg){
+    setDirect(false);
     var n=$('ytNote'); n.textContent=msg+' ';
     var a=document.createElement('a'); a.href=location.href; a.target='_blank'; a.rel='noopener'; a.textContent='새 창에서 열기 \u2197';
     n.appendChild(a);
     if(DEBUG||lastErr||!ready){ var sm=document.createElement('small'); sm.textContent=envLine(); n.appendChild(sm); }
     $('ytHost').classList.add('show');
   }
-  function hidePlayer(){ $('ytHost').classList.remove('show'); }
+  function hidePlayer(){
+    $('ytHost').classList.remove('show'); setDirect(wantDirect());
+    var f=$('ytHost').querySelector('iframe');
+    if(f&&document.activeElement===f) f.blur();      /* give keyboard focus (Space) back to the widget */
+  }
   /* does this document's Permissions Policy allow autoplay? (false inside an embed whose host did not delegate it) */
   function autoplayBlocked(){
     try{ var fp=document.permissionsPolicy||document.featurePolicy; return !!(fp&&fp.allowsFeature&&!fp.allowsFeature('autoplay')); }
     catch(e){ return false; }
   }
-  function armWatch(){
+  function armWatch(ms){
     clearTimeout(stuckTimer); tryingPlay=true;
     /* if autoplay is known to be blocked and nothing has played yet, don't make the user wait */
-    stuckTimer=setTimeout(onStuck, !ready?8000:(autoplayBlocked()&&!everPlayed?1200:4000));
+    stuckTimer=setTimeout(onStuck, ms||(!ready?8000:(autoplayBlocked()&&!everPlayed?1200:4000)));
   }
+  /* A click inside the invisible player makes its iframe our document's activeElement (a blur event is not
+     reliable: our own frame may not have had focus before). Notice it and watch whether playback began. */
+  setInterval(function(){
+    if(stuckTimer||playing) return;
+    var h=$('ytHost'); if(!h.classList.contains('direct')) return;
+    var f=h.querySelector('iframe');
+    if(f&&document.activeElement===f) armWatch(2500);
+  },300);
   function disarmWatch(){ clearTimeout(stuckTimer); stuckTimer=null; tryingPlay=false; bufWaits=0; }
   function onStuck(){
     stuckTimer=null;
@@ -618,19 +647,21 @@
   }
   function next(){
     if(!S.tracks.length||!ready) return;
-    armWatch();
-    if(inPlaylist()){
+    var auto=!wantDirect();               /* before the first real click, autoplay would be refused: just cue */
+    if(auto) armWatch();
+    if(auto&&inPlaylist()){
       var idx=player.getPlaylistIndex(), len=player.getPlaylist().length;
       if(idx<len-1){ player.nextVideo(); return; }
     }
-    cueTrack(cur+1,true);
+    cueTrack(cur+1,auto);
   }
   function prev(){
     if(!S.tracks.length||!ready) return;
     if(player.getCurrentTime&&player.getCurrentTime()>3){ player.seekTo(0,true); return; }
-    armWatch();
-    if(inPlaylist()&&player.getPlaylistIndex()>0){ player.previousVideo(); return; }
-    cueTrack(cur-1,true);
+    var auto=!wantDirect();
+    if(auto) armWatch();
+    if(auto&&inPlaylist()&&player.getPlaylistIndex()>0){ player.previousVideo(); return; }
+    cueTrack(cur-1,auto);
   }
 
   function onState(e){
