@@ -43,18 +43,20 @@
   .bg{position:absolute;left:0;top:0;width:100%;height:100%}
   .yt-host{position:absolute;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1}
   .yt-note,.yt-close{display:none}
-  /* shown only when playback cannot start by itself (e.g. an embed that blocks autoplay) */
+  /* shown only when playback cannot start by itself (an embed that blocks autoplay): it covers exactly
+     the cassette, so it fits whatever size the embed block has */
   .yt-host.show{
-    left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);
-    width:min(88%,420px);height:auto;overflow:visible;opacity:1;pointer-events:auto;z-index:9;
-    background:#242222;color:#fff;border-radius:14px;padding:12px;
-    box-shadow:0 10px 36px rgba(0,0,0,.45);
+    left:0;top:0;right:0;bottom:0;width:auto;height:auto;transform:none;
+    display:flex;flex-direction:column;gap:6px;
+    overflow:hidden;opacity:1;pointer-events:auto;z-index:9;
+    background:#242222;color:#fff;border-radius:3.6% / 5.6%;
+    padding:max(8px,2.4%) max(10px,3%);
   }
-  .yt-host.show iframe{display:block;width:100%;height:auto;aspect-ratio:16/9;border:0;border-radius:8px;background:#000}
-  .yt-host.show .yt-note{display:block;font-size:12px;line-height:1.55;margin:0 22px 8px 2px}
-  .yt-note a{color:#f0b7c6}
-  .yt-note small{display:block;opacity:.55;font-size:10px;margin-top:4px;word-break:break-all}
-  .yt-host.show .yt-close{display:block;position:absolute;top:6px;right:8px;border:0;background:transparent;color:#fff;font-size:15px;line-height:1;cursor:pointer;padding:4px}
+  .yt-host.show iframe{display:block;flex:1 1 0;min-height:60px;width:100%;height:auto;border:0;border-radius:8px;background:#000}
+  .yt-host.show .yt-note{display:block;flex:0 0 auto;font-size:clamp(10px,2.3vw,13px);line-height:1.45;margin:0 26px 0 2px}
+  .yt-note a{color:#f0b7c6;white-space:nowrap}
+  .yt-note small{display:block;opacity:.55;font-size:.82em;margin-top:3px;word-break:break-all}
+  .yt-host.show .yt-close{display:block;position:absolute;top:max(4px,1.6%);right:max(6px,2%);border:0;background:transparent;color:#fff;font-size:16px;line-height:1;cursor:pointer;padding:4px}
 
   /* ---------- title: sits on the first ruled line (y=121), like handwriting on a J-card ---------- */
   .title-svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
@@ -502,7 +504,8 @@
   /* ---------------- player ---------------- */
   var player=null, ready=false, cur=0, playing=false, wantPlay=false, scrubbing=false;
   var YT_HOSTS=['https://www.youtube.com','https://www.youtube-nocookie.com'], hostIdx=0;
-  var lastErr=0, errStreak=0, tryingPlay=false, stuckTimer=null, bufWaits=0;
+  var lastErr=0, errStreak=0, tryingPlay=false, stuckTimer=null, bufWaits=0, everPlayed=false;
+  var DEBUG=/[?&#]debug\b/.test(location.search+location.hash);
 
   function buildPlayer(){
     if(player&&player.destroy){ try{ player.destroy(); }catch(e){} }
@@ -541,19 +544,25 @@
     if(lastErr===153) return '유튜브가 \u201c재생기 설정 오류(153)\u201d를 냈어요. 임베드한 쪽이 출처(Referer) 정보를 막을 때 생기는 오류예요.';
     if(lastErr) return (ERR_TEXT[lastErr]||'재생 오류가 났어요')+' (오류 '+lastErr+').';
     if(!ready) return '유튜브 플레이어가 응답하지 않아요.';
-    return '이 환경에서는 자동 재생이 막힌 것 같아요. 아래 플레이어의 \u25b6 를 한 번만 눌러 주세요. 그 뒤로는 평소처럼 동작해요.';
+    return '자동 재생이 막힌 환경이에요. 아래 \u25b6 를 한 번만 눌러 주세요.';
   }
   function showPlayer(msg){
     var n=$('ytNote'); n.textContent=msg+' ';
     var a=document.createElement('a'); a.href=location.href; a.target='_blank'; a.rel='noopener'; a.textContent='새 창에서 열기 \u2197';
     n.appendChild(a);
-    var sm=document.createElement('small'); sm.textContent=envLine(); n.appendChild(sm);
+    if(DEBUG||lastErr||!ready){ var sm=document.createElement('small'); sm.textContent=envLine(); n.appendChild(sm); }
     $('ytHost').classList.add('show');
   }
   function hidePlayer(){ $('ytHost').classList.remove('show'); }
+  /* does this document's Permissions Policy allow autoplay? (false inside an embed whose host did not delegate it) */
+  function autoplayBlocked(){
+    try{ var fp=document.permissionsPolicy||document.featurePolicy; return !!(fp&&fp.allowsFeature&&!fp.allowsFeature('autoplay')); }
+    catch(e){ return false; }
+  }
   function armWatch(){
     clearTimeout(stuckTimer); tryingPlay=true;
-    stuckTimer=setTimeout(onStuck, ready?4000:8000);
+    /* if autoplay is known to be blocked and nothing has played yet, don't make the user wait */
+    stuckTimer=setTimeout(onStuck, !ready?8000:(autoplayBlocked()&&!everPlayed?1200:4000));
   }
   function disarmWatch(){ clearTimeout(stuckTimer); stuckTimer=null; tryingPlay=false; bufWaits=0; }
   function onStuck(){
@@ -629,7 +638,7 @@
     playing=(st===YT.PlayerState.PLAYING);
     tape.classList.toggle('playing',playing);
     setPlayIcon(playing);
-    if(playing){ disarmWatch(); lastErr=0; errStreak=0; hidePlayer(); }
+    if(playing){ everPlayed=true; disarmWatch(); lastErr=0; errStreak=0; hidePlayer(); }
     if(st===YT.PlayerState.PLAYING||st===YT.PlayerState.PAUSED){
       var d=player.getVideoData?player.getVideoData():null;
       if(d&&d.title) setTicker(d.title);
